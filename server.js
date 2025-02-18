@@ -45,6 +45,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
+    maxPoolSize: 10, // Optimize DB connection pooling
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("DB Connection Error:", err));

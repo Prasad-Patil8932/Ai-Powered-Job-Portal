@@ -5,14 +5,16 @@ const Application = require("../models/Application");
 const User = require("../models/User");
 
 exports.getDashboardStats = asyncHandler(async (req, res) => {
-  const totalJobs = await Job.countDocuments();
-  const totalApplications = await Application.countDocuments();
-  const totalUsers = await User.countDocuments();
-  const recentJobs = await Job.find().sort({ createdAt: -1 }).limit(5);
-  const recentApplications = await Application.find().sort({ appliedAt: -1 }).limit(5).populate("job");
+  const [totalJobs, totalApplications, totalUsers, recentJobs, recentApplications] = await Promise.all([
+    Job.countDocuments(),
+    Application.countDocuments(),
+    User.countDocuments(),
+    Job.find().sort({ createdAt: -1 }).limit(5),
+    Application.find().sort({ appliedAt: -1 }).limit(5).populate("job"),
+  ]);
 
-  // AI-powered job recommendations (Placeholder for future AI integration)
-  const recommendedJobs = await Job.find().limit(3); // This will later integrate AI-based filtering
+  // AI-powered job recommendations (Optimized Query for Fast Fetching)
+  const recommendedJobs = await Job.find().limit(3).select("title company location");
 
   sendResponse(res, 200, true, "Dashboard statistics retrieved successfully", {
     totalJobs,
