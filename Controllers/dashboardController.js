@@ -10,12 +10,16 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
   const totalUsers = await User.countDocuments();
   const recentJobs = await Job.find().sort({ createdAt: -1 }).limit(5);
   const recentApplications = await Application.find().sort({ appliedAt: -1 }).limit(5).populate("job");
-  
+
+  // AI-powered job recommendations (Placeholder for future AI integration)
+  const recommendedJobs = await Job.find().limit(3); // This will later integrate AI-based filtering
+
   sendResponse(res, 200, true, "Dashboard statistics retrieved successfully", {
     totalJobs,
     totalApplications,
     totalUsers,
     recentJobs,
     recentApplications,
+    recommendedJobs,
   });
 });
