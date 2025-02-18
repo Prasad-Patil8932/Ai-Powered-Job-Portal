@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
@@ -12,6 +14,11 @@ const chatRoutes = require("./routes/chatRoutes");
 const errorHandler = require("./middlewares/errorMiddleware");
 
 const app = express();
+const server = createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" },
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -39,4 +46,17 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("DB Connection Error:", err));
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Socket.io for real-time chat
+io.on("connection", (socket) => {
+  console.log("New user connected: ", socket.id);
+  
+  socket.on("sendMessage", (data) => {
+    io.to(data.receiverId).emit("receiveMessage", data);
+  });
+  
+  socket.on("disconnect", () => {
+    console.log("User disconnected: ", socket.id);
+  });
+});
+
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
