@@ -58,6 +58,7 @@ mongoose
     useUnifiedTopology: true,
     useCreateIndex: true,
     maxPoolSize: 10, // Optimize DB connection pooling
+    autoIndex: false, // Disable auto-indexing for better performance
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("DB Connection Error:", err));
