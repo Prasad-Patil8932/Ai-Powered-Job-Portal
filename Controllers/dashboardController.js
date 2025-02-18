@@ -5,10 +5,19 @@ const Application = require("../models/Application");
 const User = require("../models/User");
 
 exports.getDashboardStats = asyncHandler(async (req, res) => {
-  const { search } = req.query;
+  const { search, location, salaryMin, salaryMax } = req.query;
   let jobFilter = {};
+
   if (search) {
-    jobFilter = { title: { $regex: search, $options: "i" } };
+    jobFilter.title = { $regex: search, $options: "i" };
+  }
+  if (location) {
+    jobFilter.location = { $regex: location, $options: "i" };
+  }
+  if (salaryMin || salaryMax) {
+    jobFilter.salary = {};
+    if (salaryMin) jobFilter.salary.$gte = parseInt(salaryMin);
+    if (salaryMax) jobFilter.salary.$lte = parseInt(salaryMax);
   }
 
   const [totalJobs, totalApplications, totalUsers, recentJobs, recentApplications] = await Promise.all([
@@ -20,7 +29,7 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
   ]);
 
   // AI-powered job recommendations (Optimized Query for Fast Fetching)
-  const recommendedJobs = await Job.find(jobFilter).limit(3).select("title company location");
+  const recommendedJobs = await Job.find(jobFilter).limit(3).select("title company location salary");
 
   sendResponse(res, 200, true, "Dashboard statistics retrieved successfully", {
     totalJobs,
