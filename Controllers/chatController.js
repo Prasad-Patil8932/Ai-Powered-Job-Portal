@@ -1,20 +1,14 @@
 const asyncHandler = require("../utils/asyncHandler");
 const sendResponse = require("../utils/responseHandler");
-const ChatMessage = require("../Models/ChatMessage");
+const ChatMessage = require("../models/ChatMessage");
+const { getIO } = require("../utils/socket");
 
 exports.sendMessage = asyncHandler(async (req, res) => {
   const { receiver, message } = req.body;
   const chatMessage = await ChatMessage.create({ sender: req.user.id, receiver, message });
-  sendResponse(res, 201, true, "Message sent successfully", chatMessage);
-});
+  
+  const io = getIO();
+  io.to(receiver).emit("receiveMessage", chatMessage);
 
-exports.getMessages = asyncHandler(async (req, res) => {
-  const { receiver } = req.params;
-  const messages = await ChatMessage.find({
-    $or: [
-      { sender: req.user.id, receiver },
-      { sender: receiver, receiver: req.user.id },
-    ],
-  }).sort({ createdAt: 1 });
-  sendResponse(res, 200, true, "Messages retrieved successfully", messages);
+  sendResponse(res, 201, true, "Message sent successfully", chatMessage);
 });
