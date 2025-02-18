@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const authRoutes = require("./routes/authRoutes");
@@ -21,6 +23,16 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 5000;
+
+// Security Middleware
+app.use(helmet());
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: "Too many requests, please try again later.",
+  })
+);
 
 // Middleware
 app.use(express.json());
