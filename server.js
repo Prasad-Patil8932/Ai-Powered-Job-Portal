@@ -11,6 +11,7 @@ const applicationRoutes = require("./routes/applicationRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const errorHandler = require("./middlewares/errorMiddleware");
 
 const app = express();
@@ -33,6 +34,7 @@ app.use("/api/applications", applicationRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Error Handler
 app.use(errorHandler);
