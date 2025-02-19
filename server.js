@@ -7,6 +7,7 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const Redis = require("ioredis");
 const authRoutes = require("./routes/authRoutes");
 const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
@@ -22,6 +23,7 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
+const redis = new Redis(process.env.REDIS_URL);
 const PORT = process.env.PORT || 5000;
 
 // Security Middleware

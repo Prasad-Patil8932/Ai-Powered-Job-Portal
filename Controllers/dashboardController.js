@@ -8,6 +8,12 @@ const OpenAI = require("openai");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 exports.getDashboardStats = asyncHandler(async (req, res) => {
+  const cacheKey = "dashboard_stats";
+  const cachedData = await redis.get(cacheKey);
+  if (cachedData) {
+    return sendResponse(res, 200, true, "Dashboard statistics retrieved from cache", JSON.parse(cachedData));
+  }
+
   const { search, location, salaryMin, salaryMax, skills } = req.query;
   let jobFilter = {};
 
@@ -42,12 +48,15 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
     recommendedJobs = await Job.find({ title: { $in: aiSuggestedRoles } }).limit(3).select("title company location salary");
   }
 
-  sendResponse(res, 200, true, "Dashboard statistics retrieved successfully", {
+  const responseData = {
     totalJobs,
     totalApplications,
     totalUsers,
     recentJobs,
     recentApplications,
     recommendedJobs,
-  });
+  };
+
+  await redis.setex(cacheKey, 3600, JSON.stringify(responseData)); // Cache for 1 hour
+  sendResponse(res, 200, true, "Dashboard statistics retrieved successfully", responseData);
 });
