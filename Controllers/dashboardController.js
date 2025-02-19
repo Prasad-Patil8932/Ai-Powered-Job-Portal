@@ -3,9 +3,12 @@ const sendResponse = require("../utils/responseHandler");
 const Job = require("../models/Job");
 const Application = require("../models/Application");
 const User = require("../models/User");
+const OpenAI = require("openai");
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 exports.getDashboardStats = asyncHandler(async (req, res) => {
-  const { search, location, salaryMin, salaryMax } = req.query;
+  const { search, location, salaryMin, salaryMax, skills } = req.query;
   let jobFilter = {};
 
   if (search) {
@@ -28,8 +31,16 @@ exports.getDashboardStats = asyncHandler(async (req, res) => {
     Application.find().sort({ appliedAt: -1 }).limit(5).populate("job"),
   ]);
 
-  // AI-powered job recommendations (Optimized Query for Fast Fetching)
-  const recommendedJobs = await Job.find(jobFilter).limit(3).select("title company location salary");
+  let recommendedJobs = [];
+  if (skills) {
+    const aiResponse = await openai.completions.create({
+      model: "gpt-3.5-turbo",
+      prompt: `Based on the following skills, suggest job roles: ${skills}`,
+      max_tokens: 50,
+    });
+    const aiSuggestedRoles = aiResponse.choices[0].text.split(",").map((role) => role.trim());
+    recommendedJobs = await Job.find({ title: { $in: aiSuggestedRoles } }).limit(3).select("title company location salary");
+  }
 
   sendResponse(res, 200, true, "Dashboard statistics retrieved successfully", {
     totalJobs,
